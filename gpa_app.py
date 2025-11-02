@@ -7,7 +7,7 @@ grade_to_score = {
     'D+': 1.3, 'D': 1.0, 'F': 0.0
 }
 
-st.title("GPA 計算器 V 1.0")
+st.title("GPA 計算器 v1.0")
 
 subjects = st.text_input("請輸入科目（空格分隔）例如：國文 英文 數學 物理 歷史").split()
 grades = st.text_input("請輸入對應成績（空格分隔）例如：A+ B+ A C B-").split()
@@ -25,4 +25,5 @@ if len(subjects) == len(grades) == len(credits) and len(subjects) > 0:
         st.error("學分數輸入錯誤，請確認為數字")
 else:
     st.warning("請確保三欄輸入的項目數量相同，且至少一項")
+
 
