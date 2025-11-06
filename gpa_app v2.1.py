@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.title("GPA 計算器 v3.0")
+st.title("GPA 計算器 v2.1")
 
 # ➤ GPA 對照表
 gpa_map = {
@@ -70,4 +70,5 @@ if st.button("📊 計算 GPA"):
 
     gpa = total_points / total_credits
     st.success(f"🎓 你的 GPA 是：**{gpa:.2f}**")
+
 
