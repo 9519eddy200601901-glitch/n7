@@ -49,8 +49,9 @@ for subject in st.session_state.subjects:
 
     with col2:
     st.session_state.grades[new_name] = st.radio(
-        f"{new_name} 成績", grade_options, key=f"grade_{new_name}", horizontal=True
+        f"{new_name} 成績", grade_options, key=f"grade_{new_name}"
     )
+
 
 
 
@@ -72,6 +73,7 @@ if st.button("📊 計算 GPA"):
 
     gpa = total_points / total_credits
     st.success(f"🎓 你的 GPA 是：**{gpa:.2f}**")
+
 
 
 
