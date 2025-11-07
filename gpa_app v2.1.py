@@ -1,12 +1,8 @@
-# GPA calculator app - v2.2 with dropdown credits
 import streamlit as st
-from math import isclose
 
-st.set_page_config(page_title="GPA 計算器 v2.1", layout="wide")
+st.title("GPA 計算器 v3.0")
 
-st.title("GPA 計算器 v2.1")
-
-# GPA 對照表
+# ➤ GPA 對照表
 gpa_map = {
     "A+": 4.3, "A": 4.0, "A-": 3.7,
     "B+": 3.3, "B": 3.0, "B-": 2.7,
@@ -15,129 +11,64 @@ gpa_map = {
 }
 
 grade_options = list(gpa_map.keys())
+credit_options = [1, 2, 3, 4, 5]
 
-# 學分選項 (改為下拉式選單)
-credit_options = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6]
-
-# 百分制 → 等第
-def percent_to_grade(p):
-    p = float(p)
-    if p >= 97: return "A+"
-    if p >= 93: return "A"
-    if p >= 90: return "A-"
-    if p >= 87: return "B+"
-    if p >= 83: return "B"
-    if p >= 80: return "B-"
-    if p >= 77: return "C+"
-    if p >= 73: return "C"
-    if p >= 70: return "C-"
-    if p >= 60: return "D"
-    return "F"
-
-# Session State
+# ➤ Session State 初始化
 if "subjects" not in st.session_state:
-    st.session_state.subjects = ["國文", "英文"]
+    st.session_state.subjects = ["國文", "英文"]  # 預設兩科
 if "grades" not in st.session_state:
     st.session_state.grades = {}
 if "credits" not in st.session_state:
     st.session_state.credits = {}
-if "input_mode" not in st.session_state:
-    st.session_state.input_mode = "grade"
 
-for s in st.session_state.subjects:
-    if s not in st.session_state.grades:
-        st.session_state.grades[s] = "A"
-    if s not in st.session_state.credits:
-        st.session_state.credits[s] = 3
-
+# ➤ 顯示 GPA 對照表
 with st.expander("📘 GPA 等第對照表（點開查看）"):
-    for g,v in gpa_map.items():
-        st.write(f"**{g}** = {v}")
+    for grade, gpa in gpa_map.items():
+        st.write(f"**{grade}** = {gpa} 分")
 
 st.write("---")
 
-# 設定區
-left, right = st.columns([1,2])
-with left:
-    st.subheader("設定")
-    mode = st.radio("成績輸入模式", ("等第", "百分制"))
-    st.session_state.input_mode = "grade" if mode == "等第" else "percent"
+# ➤ 科目輸入區
+st.subheader("科目 / 成績 / 學分")
 
-    if st.button("➕ 新增科目"):
-        name = f"科目{len(st.session_state.subjects)+1}"
-        st.session_state.subjects.append(name)
-        st.session_state.grades[name] = "A"
-        st.session_state.credits[name] = 3
-        st.experimental_rerun()
+# 按鈕：新增科目
+if st.button("➕ 新增科目"):
+    st.session_state.subjects.append(f"科目{len(st.session_state.subjects)+1}")
 
-    if len(st.session_state.subjects) > 1 and st.button("➖ 刪除最後科目"):
-        last = st.session_state.subjects.pop()
-        st.session_state.grades.pop(last)
-        st.session_state.credits.pop(last)
-        st.experimental_rerun()
+# 按鈕：刪除最後科目
+if len(st.session_state.subjects) > 1 and st.button("➖ 刪除最後科目"):
+    st.session_state.subjects.pop()
 
-# 科目輸入
-def add_subject_after(idx):
-    new = f"科目{len(st.session_state.subjects)+1}"
-    st.session_state.subjects.insert(idx+1, new)
-    st.session_state.grades[new] = "A"
-    st.session_state.credits[new] = 3
-    st.experimental_rerun()
+# ➤ 動態生成欄位
+for subject in st.session_state.subjects:
+    col1, col2, col3 = st.columns([2, 2, 1])
 
-with right:
-    st.subheader("科目 / 成績 / 學分")
-    remove_list = []
+    with col1:
+        new_name = st.text_input(f"科目名稱", subject, key=f"name_{subject}")
+        st.session_state.subjects[st.session_state.subjects.index(subject)] = new_name
 
-    for idx, subj in enumerate(st.session_state.subjects):
-        row = st.columns([3,3,2,1])
+    with col2:
+        st.session_state.grades[new_name] = st.radio(
+            f"{new_name} 成績", grade_options, key=f"grade_{new_name}", horizontal=True
+        )
 
-        with row[0]:
-            new = st.text_input("科目名稱", value=subj, key=f"name_{idx}")
-            if new != subj:
-                st.session_state.subjects[idx] = new
-                st.session_state.grades[new] = st.session_state.grades.pop(subj)
-                st.session_state.credits[new] = st.session_state.credits.pop(subj)
-                subj = new
 
-        with row[1]:
-            if st.session_state.input_mode == "grade":
-                st.session_state.grades[subj] = st.radio("成績", grade_options, key=f"g{idx}")
-            else:
-                p = st.number_input("百分制", 0.0, 100.0, 90.0, step=0.5, key=f"p{idx}")
-                st.session_state.grades[subj] = p
-                st.caption(f"→ {percent_to_grade(p)}")
+    with col3:
+        st.session_state.credits[new_name] = st.selectbox(
+            f"{new_name} 學分", credit_options, key=f"credit_{new_name}"
+        )
 
-        with row[2]:
-            st.session_state.credits[subj] = st.selectbox("學分", credit_options, key=f"c{idx}")
-
-        with row[3]:
-            if st.button("＋", key=f"add{idx}"):
-                add_subject_after(idx)
-            if len(st.session_state.subjects)>1 and st.button("－", key=f"rm{idx}"):
-                remove_list.append(subj)
-
-        st.divider()
-
-    for r in remove_list:
-        st.session_state.subjects.remove(r)
-        st.session_state.grades.pop(r)
-        st.session_state.credits.pop(r)
-        st.experimental_rerun()
-
-st.write("---")
-st.subheader("計算結果")
-
+# ➤ 計算按鈕
 if st.button("📊 計算 GPA"):
-    total_p = 0
-    total_c = 0
-    for s in st.session_state.subjects:
-        c = float(st.session_state.credits[s])
-        if c == 0: continue
-        g = st.session_state.grades[s]
-        g = percent_to_grade(g) if st.session_state.input_mode == "percent" else g
-        total_p += gpa_map[g] * c
-        total_c += c
-    if total_c == 0:
-        st.warning("沒有可計算的學分")
-    else:
-        st.success(f"🎓 GPA = **{total_p/total_c:.2f}** (總學分 {total_c})")
+    total_points = 0
+    total_credits = 0
+
+    for subject in st.session_state.subjects:
+        grade = st.session_state.grades[subject]
+        credit = st.session_state.credits[subject]
+        total_points += gpa_map[grade] * credit
+        total_credits += credit
+
+    gpa = total_points / total_credits
+    st.success(f"🎓 你的 GPA 是：**{gpa:.2f}**")
+
