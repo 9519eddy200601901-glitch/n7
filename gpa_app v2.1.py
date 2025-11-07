@@ -53,6 +53,7 @@ for subject in st.session_state.subjects:
     )
 
 
+
     with col3:
         st.session_state.credits[new_name] = st.selectbox(
             f"{new_name} 學分", credit_options, key=f"credit_{new_name}"
@@ -71,6 +72,7 @@ if st.button("📊 計算 GPA"):
 
     gpa = total_points / total_credits
     st.success(f"🎓 你的 GPA 是：**{gpa:.2f}**")
+
 
 
 
